@@ -23,10 +23,10 @@ export const oraclePool = oracledb.createPool({
 
 // SQL Server
 export const sqlServerPool = new sql.ConnectionPool({
-  user: process.env.SQL_USER,
-  password: process.env.SQL_PASSWORD,
-  server: process.env.SQL_SERVER,
-  database: process.env.SQL_DATABASE,
+  user: process.env.SQL_USER || 'defaultUser',
+  password: process.env.SQL_PASSWORD || 'defaultPassword',
+  server: process.env.SQL_SERVER || 'defaultServer',
+  database: process.env.SQL_DATABASE || 'defaultDatabase',
   options: {
     encrypt: false,
   },

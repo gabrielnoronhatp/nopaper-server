@@ -8,7 +8,7 @@ export default class Order {
   }
 
   async create(orderData: any): Promise<any> {
-    const { ramo, nota, valor } = orderData; // Exemplo de dados
+    const { ramo, nota, valor } = orderData; 
     const result = await this.db.query(
       'INSERT INTO orders (ramo, nota, valor) VALUES ($1, $2, $3) RETURNING *',
       [ramo, nota, valor]
