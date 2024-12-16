@@ -18,8 +18,7 @@ const router = Router();
  *               items:
  *                 type: object
  *                 properties:
- *                   loja:
- *                     type: string
+ *                   loja:string
  */
 router.get('/dadoslojas', StoreController.getAllStores);
 

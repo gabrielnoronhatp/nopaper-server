@@ -5,7 +5,7 @@ export class StoreService {
   static async getAllStores(): Promise<Store[]> {
     try {
       const result = await pgPool.query(
-        'SELECT UPPER(fantasia) AS loja FROM public.dimfilial WHERE idempresa IN (1,2,3,4,8,15)'
+        'SELECT UPPER(fantasia) AS loja FROM public.dimfilial'
       );
       return result.rows;
     } catch (error) {

@@ -1,5 +1,16 @@
 import { Pool } from 'pg';
 
+export interface CentroCusto {
+  centrocusto: string;
+  valor: number;
+}
+
+export interface Product {
+  produto: string;
+  valor: number;
+  centroCusto: CentroCusto[];
+}
+
 export interface OrderData {
   dtlanc: string;
   ramoOP: string;
@@ -12,10 +23,10 @@ export interface OrderData {
   metodoOP: string;
   qtitensOP: number;
   valorimpostoOP: number;
-  produtosOP: Array<{produto: string; valor: number; centroCusto: string}>;
-  ccustoOP: Array<{centrocusto: string; valor: number}>;
+  produtosOP: Product[];
   observacaoOP: string;
   opcaoLancOP: string;
+  ccustoOP: CentroCusto[];
   userOP: string;
 }
 
