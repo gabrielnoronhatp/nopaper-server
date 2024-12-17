@@ -5,7 +5,7 @@ export class SupplierService {
   static async getSuppliers(searchQuery: string): Promise<Supplier[]> {
     try {
       const result = await pgPool.query(
-        'SELECT resumo AS fornecedor FROM wint.pcfornec WHERE resumo LIKE $1 ',
+        'SELECT resumo AS fornecedor FROM wint.pcfornec WHERE resumo LIKE $1 LIMIT 10',
         [`%${searchQuery}%`]
       );
       return result.rows;

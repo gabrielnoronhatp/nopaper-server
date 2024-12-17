@@ -11,26 +11,14 @@ export default class OrderService {
   }
 
 
-  async testConnection(): Promise<boolean> {
-    const client = await this.pool.connect();
-    try {
-      await client.query('SELECT 1'); // Executa uma consulta simples
-      return true; // Retorna true se a conexão for bem-sucedida
-    } catch (error) {
-      console.error('Erro ao testar a conexão:', error);
-      return false; // Retorna false se houver um erro
-    } finally {
-      client.release(); // Libera o cliente de volta para o pool
-    }
-  }
-
+ 
 
   async create(orderData: OrderData): Promise<any> {
     if (!orderData.produtosOP || orderData.produtosOP.length === 0) {
       throw new Error("produtosOP is not defined or empty.");
     }
 
-    // Validar valores
+  
     const valorTotalItens = orderData.produtosOP.reduce((total, item) => total + parseFloat(String(item.valor)), 0);
     const valorTotalCentrosCustos = orderData.ccustoOP.reduce((total, cc) => total + parseFloat(String(cc.valor)), 0);
     const valorItensMenosImposto = valorTotalItens - parseFloat(String(orderData.valorimpostoOP));
@@ -74,12 +62,12 @@ export default class OrderService {
         ORDER BY 
           oop.id DESC
       `);
-      return result.rows; // Return the rows from the query
+      return result.rows; 
     } catch (error) {
       console.error('Erro ao buscar ordens de pagamento:', error);
-      throw new Error('Erro ao buscar ordens de pagamento'); // Throw an error if something goes wrong
+      throw new Error('Erro ao buscar ordens de pagamento'); 
     } finally {
-      client.release(); // Release the client back to the pool
+      client.release(); 
     }
   }
 

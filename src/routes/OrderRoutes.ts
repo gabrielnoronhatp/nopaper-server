@@ -113,25 +113,6 @@ router.post('/cadastrar-ordem', (req, res) => orderController.createOrder(req, r
  */
 router.get('/consultar-ordem', (req, res) => orderController.getOrders(req, res));
 
-/**
- * @swagger
- * /api/testar-conexao:
- *   get:
- *     summary: Testa a conexão com o banco de dados
- *     responses:
- *       200:
- *         description: Conexão bem-sucedida
- *       500:
- *         description: Erro ao testar a conexão
- */
-router.get('/testar-conexao', async (req, res) => {
-  const isConnected = await orderController.testConnection();
-  if (isConnected) {
-    res.status(200).json({ message: 'Conexão bem-sucedida!' });
-  } else {
-    res.status(500).json({ message: 'Erro ao testar a conexão.' });
-  }
-});
 
 /**
  * @swagger
