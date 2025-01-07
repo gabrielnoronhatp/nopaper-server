@@ -14,8 +14,7 @@ RUN npm install
 # Copiar código fonte
 COPY . .
 
-# Definir permissões corretas
-RUN chown -R node:node /
+
 
 # Mudar para o usuário node
 USER node
