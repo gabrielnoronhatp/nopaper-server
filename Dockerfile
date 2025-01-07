@@ -15,7 +15,7 @@ RUN npm install
 COPY . .
 
 # Definir permissões corretas
-RUN chown -R node:node /app
+RUN chown -R node:node /
 
 # Mudar para o usuário node
 USER node
