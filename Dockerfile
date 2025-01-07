@@ -1,6 +1,6 @@
 FROM node:18-alpine
 
-WORKDIR /src
+WORKDIR /
 
 # Copiar arquivos de dependências
 COPY package*.json ./
