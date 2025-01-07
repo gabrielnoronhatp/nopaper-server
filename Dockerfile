@@ -17,5 +17,8 @@ RUN npm run build || echo "No build script"
 # Expor porta
 EXPOSE 3001
 
+ENV HOST=0.0.0.0
+
+
 # Comando para iniciar a aplicação
 CMD ["npm", "start"]

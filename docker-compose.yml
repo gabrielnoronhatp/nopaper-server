@@ -8,6 +8,7 @@ services:
     ports:
       - "3001:3001"
     environment:
+      - HOST=0.0.0.0
       - PORT=3001
       - PG_USER=userop
       - PG_HOST=10.2.10.49
