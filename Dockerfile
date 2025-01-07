@@ -1,6 +1,6 @@
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /
 
 # Instalar ts-node globalmente com permissões de root
 RUN npm install -g ts-node typescript
