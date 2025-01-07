@@ -7,6 +7,8 @@ const router = Router();
  * @swagger
  * /api/dadoslojas:
  *   get:
+ *     tags:
+ *       - Stores
  *     summary: Retorna uma lista de todas as lojas
  *     responses:
  *       200:
@@ -26,6 +28,8 @@ router.get('/dadoslojas', StoreController.getAllStores);
  * @swagger
  * /api/lojasgrupo:
  *   get:
+ *     tags:
+ *       - Stores
  *     summary: Retorna uma lista de lojas filtradas por nome
  *     parameters:
  *       - in: query

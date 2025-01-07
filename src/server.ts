@@ -5,6 +5,8 @@ import supplierRoutes from './routes/SupplierRoutes';
 import storeRoutes from './routes/StoreRoutes';
 import orderRoutes from './routes/OrderRoutes';
 import { setupSwagger } from './swagger';
+import loginRoutes from "./routes/LoginRoutes"
+import verifyJWT from './middleware/authMiddleware';
 
 dotenv.config();
 
@@ -18,6 +20,13 @@ setupSwagger(app);
 app.use('/api', supplierRoutes);
 app.use('/api', storeRoutes);
 app.use('/api', orderRoutes);
+app.use('/api',loginRoutes)
+
+app.get('/api/profile', verifyJWT, (req, res) => {
+  res.json({ message: 'Perfil protegido', user: req.user });
+});
+
+
 
 const PORT = process.env.PORT || 3001;
 

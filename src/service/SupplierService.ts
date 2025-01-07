@@ -1,5 +1,5 @@
 import { pgPool } from '../config/database';
-import { Supplier } from '../models/Supplier';
+import { Supplier } from '../types/Supplier';
 
 export class SupplierService {
   static async getSuppliers(searchQuery: string): Promise<Supplier[]> {

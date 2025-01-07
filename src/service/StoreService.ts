@@ -1,5 +1,5 @@
 import { pgPool } from '../config/database';
-import { Store } from '../models/Store';
+import { Store } from '../types/Store';
 
 export class StoreService {
   static async getAllStores(): Promise<Store[]> {

@@ -7,6 +7,8 @@ const router = Router();
  * @swagger
  * /api/fornec_dist:
  *   get:
+ *     tags:
+ *       - Suppliers
  *     summary: Retorna uma lista de fornecedores
  *     parameters:
  *       - in: query
@@ -28,5 +30,8 @@ const router = Router();
  *                     type: string
  */
 router.get('/fornec_dist', SupplierController.getSuppliers);
+
+
+
 
 export default router; 

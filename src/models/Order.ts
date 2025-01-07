@@ -1,34 +1,6 @@
 import { Pool } from 'pg';
+import { OrderData } from '../types/OrderData';
 
-export interface CentroCusto {
-  centrocusto: string;
-  valor: number;
-}
-
-export interface Product {
-  produto: string;
-  valor: number;
-  centroCusto: CentroCusto[];
-}
-
-export interface OrderData {
-  dtlanc: string;
-  ramoOP: string;
-  notaOP: string;
-  qtparcelasOP: number;
-  contagerencialOP: string;
-  fornecedorOP: string;
-  lojaOP: string;
-  serieOP: string;
-  metodoOP: string;
-  qtitensOP: number;
-  valorimpostoOP: number;
-  produtosOP: Product[];
-  observacaoOP: string;
-  opcaoLancOP: string;
-  ccustoOP: CentroCusto[];
-  userOP: string;
-}
 
 export default class Order {
   private db: Pool;

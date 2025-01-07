@@ -27,13 +27,34 @@ export default class OrderController {
     }
   }
 
+  async getOrderById(req: Request, res: Response) {
+    const opId: string = req.params.id;
+    try {
+      const order = await this.service.getOrderById(parseInt(opId));
+  
+      if (!order) {
+        return res.status(404).json({
+          success: false,
+          message: `Ordem de pagamento com ID ${opId} não encontrada.`,
+        });
+      }
+  
+      res.status(200).json(order);
+    } catch (error: any) {
+      console.error('Erro ao buscar ordem de pagamento:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Erro ao buscar ordem de pagamento.',
+      });
+    }
+  }
 
 
     async getOrders(req: Request, res: Response) {
       try {
         const orders = await this.service.getAllOrders();
         res.status(200).json(orders);
-      } catch (error: any) {
+      } catch (error: any) { 
         console.error('Erro ao buscar ordens de pagamento:', error);
         res.status(500).json({ 
           success: false, 
