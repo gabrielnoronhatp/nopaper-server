@@ -67,4 +67,33 @@ export default class Order {
       client.release();
     }
   }
+
+  async searchOrders(params: any): Promise<any> {
+    const client = await this.db.connect();
+    try {
+      const queryParts = [];
+      const queryValues = [];
+      let index = 1;
+
+      for (const [key, value] of Object.entries(params)) {
+        if (value) {
+          queryParts.push(`${key} = $${index}`);
+          queryValues.push(value);
+          index++;
+        }
+      }
+
+      const query = `
+        SELECT * FROM intra.op_ordem_pagamento
+        WHERE ${queryParts.join(' AND ')}
+      `;
+
+      const result = await client.query(query, queryValues);
+      return result.rows;
+    } catch (error) {
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
 }

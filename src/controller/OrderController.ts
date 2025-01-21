@@ -116,4 +116,59 @@ export default class OrderController {
       });
     }
   }
+
+  async getItensContratados(req: Request, res: Response): Promise<void> {
+    try {
+      const itens = await this.service.getItensContratados();
+      res.json(itens);
+    } catch (error:any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async getCentrosCustoRateio(req: Request, res: Response): Promise<void> {
+    try {
+      const centrosCusto = await this.service.getCentrosCustoRateio();
+      res.json(centrosCusto);
+    } catch (error:any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async getFormasPagamento(req: Request, res: Response): Promise<void> {
+    try {
+      const formasPagamento = await this.service.getFormasPagamento();
+      res.json(formasPagamento);
+    } catch (error:any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async getOrderDetails(req: Request, res: Response) {
+    const ordemId: number = parseInt(req.params.ordemId, 10);
+    if (isNaN(ordemId)) {
+      return res.status(400).json({ error: 'Invalid ordemId' });
+    }
+
+    try {
+      const orderDetails = await this.service.getOrderDetailsById(ordemId);
+      res.json(orderDetails);
+    } catch (error: any) {
+      console.error('Erro ao buscar detalhes da ordem:', error);
+      res.status(500).json({ error: error.message });
+    }
+  }
+
+  async searchOrders(req: Request, res: Response) {
+    try {
+      const orders = await this.service.searchOrders(req.query);
+      res.status(200).json(orders);
+    } catch (error: any) {
+      console.error('Erro ao buscar ordens de pagamento:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Erro ao buscar ordens de pagamento.',
+      });
+    }
+  }
 }

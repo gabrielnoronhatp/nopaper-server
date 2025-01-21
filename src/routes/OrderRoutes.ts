@@ -344,11 +344,136 @@ router.get('/arquivos/:opId', async (req: any, res: any) => {
     }
   });
 
+/**
+ * @swagger
+ * /api/itens-contratados:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Retorna uma lista de todos os itens contratados
+ *     responses:
+ *       200:
+ *         description: Lista de itens contratados
+ *       500:
+ *         description: Erro ao buscar itens contratados
+ */
+router.get('/itens-contratados', (req, res) => orderController.getItensContratados(req, res));
 
+/**
+ * @swagger
+ * /api/centros-custo-rateio:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Retorna uma lista de todos os centros de custo para rateio
+ *     responses:
+ *       200:
+ *         description: Lista de centros de custo para rateio
+ *       500:
+ *         description: Erro ao buscar centros de custo para rateio
+ */
+router.get('/centros-custo-rateio', (req, res) => orderController.getCentrosCustoRateio(req, res));
 
+/**
+ * @swagger
+ * /api/formas-pagamento:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Retorna uma lista de todas as formas de pagamento
+ *     responses:
+ *       200:
+ *         description: Lista de formas de pagamento
+ *       500:
+ *         description: Erro ao buscar formas de pagamento
+ */
+router.get('/formas-pagamento', (req, res) => orderController.getFormasPagamento(req, res));
 
+/**
+ * @swagger
+ * /api/ordem-detalhes/{ordemId}:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Retorna os detalhes de uma ordem de pagamento específica
+ *     parameters:
+ *       - in: path
+ *         name: ordemId
+ *         required: true
+ *         description: ID da ordem de pagamento
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Detalhes da ordem de pagamento
+ *       400:
+ *         description: ID da ordem inválido
+ *       500:
+ *         description: Erro ao buscar detalhes da ordem
+ */
+router.get('/ordem-detalhes/:ordemId', (req: any, res: any) => {
+  orderController.getOrderDetails(req, res);
+});
 
-
-
+/**
+ * @swagger
+ * /api/buscar-ordem:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Busca ordens de pagamento com base em múltiplos parâmetros
+ *     parameters:
+ *       - in: query
+ *         name: id
+ *         schema:
+ *           type: string
+ *         description: ID da ordem de pagamento
+ *       - in: query
+ *         name: numero_nota
+ *         schema:
+ *           type: string
+ *         description: Número da nota
+ *       - in: query
+ *         name: conta_gerencial
+ *         schema:
+ *           type: string
+ *         description: Conta gerencial
+ *       - in: query
+ *         name: fornecedor
+ *         schema:
+ *           type: string
+ *         description: Fornecedor
+ *       - in: query
+ *         name: filial
+ *         schema:
+ *           type: string
+ *         description: Filial
+ *       - in: query
+ *         name: serienf
+ *         schema:
+ *           type: string
+ *         description: Série NF
+ *       - in: query
+ *         name: metodo
+ *         schema:
+ *           type: string
+ *         description: Método
+ *       - in: query
+ *         name: quantidade_itens
+ *         schema:
+ *           type: string
+ *         description: Quantidade de itens
+ *       - in: query
+ *         name: dtlanc
+ *         schema:
+ *           type: string
+ *         description: Data de lançamento
+ *     responses:
+ *       200:
+ *         description: Lista de ordens de pagamento encontradas
+ *       500:
+ *         description: Erro ao buscar ordens de pagamento
+ */
+router.get('/buscar-ordem', (req, res) => orderController.searchOrders(req, res));
 
 export default router;

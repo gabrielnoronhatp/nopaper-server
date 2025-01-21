@@ -175,4 +175,163 @@ export default class OrderService {
       client.release();
     }
   }
+
+  async getItensContratados(): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query('SELECT ordem_id, id as idlanc, nome_produto, valor_produto, centro_custo FROM intra.op_itens ORDER BY 1,2');
+      return result.rows;
+    } catch (error) {
+      console.error('Erro ao buscar itens contratados:', error);
+      throw new Error('Erro ao buscar itens contratados');
+    } finally {
+      client.release();
+    }
+  }
+
+  async getCentrosCustoRateio(): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query('SELECT ordem_id, id as idlanc, centro_custo, valor FROM intra.op_centros_custo ORDER BY 1,2');
+      return result.rows;
+    } catch (error) {
+      console.error('Erro ao buscar centros de custo para rateio:', error);
+      throw new Error('Erro ao buscar centros de custo para rateio');
+    } finally {
+      client.release();
+    }
+  }
+
+  async getFormasPagamento(): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query('SELECT ordem_id, id as idlanc, data_vencimento, banco, agencia, conta, tipopix, chavepix FROM intra.op_parcelas ORDER BY 1,3');
+      return result.rows;
+    } catch (error) {
+      console.error('Erro ao buscar formas de pagamento:', error);
+      throw new Error('Erro ao buscar formas de pagamento');
+    } finally {
+      client.release();
+    }
+  }
+
+  async getOrderDetailsById(ordemId: number): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+  
+      const itensResult = await client.query(
+        'SELECT id as idlanc, nome_produto, valor_produto, centro_custo FROM intra.op_itens WHERE ordem_id = $1 ORDER BY id',
+        [ordemId]
+      );
+
+      
+      const centrosCustoResult = await client.query(
+        'SELECT id as idlanc, centro_custo, valor FROM intra.op_centros_custo WHERE ordem_id = $1 ORDER BY id',
+        [ordemId]
+      );
+
+      const formasPagamentoResult = await client.query(
+        'SELECT id as idlanc, data_vencimento, banco, agencia, conta, tipopix, chavepix FROM intra.op_parcelas WHERE ordem_id = $1 ORDER BY data_vencimento',
+        [ordemId]
+      );
+
+  
+      const orderDetails = {
+        ordemId,
+        itensContratados: itensResult.rows,
+        centrosCusto: centrosCustoResult.rows,
+        formasPagamento: formasPagamentoResult.rows,
+      };
+
+      return orderDetails;
+    } catch (error) {
+      console.error('Erro ao buscar detalhes da ordem:', error);
+      throw new Error('Erro ao buscar detalhes da ordem');
+    } finally {
+      client.release();
+    }
+  }
+
+  async searchOrders(params: any): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      const queryParts: string[] = [];
+      const queryValues: any[] = [];
+      let index = 1;
+
+      if (params.id) {
+        queryParts.push(`CAST(oop.id AS TEXT) LIKE $${index++}`);
+        queryValues.push(`${params.id}%`);
+      }
+      if (params.numero_nota) {
+        queryParts.push(`oop.numero_nota ILIKE $${index++}`);
+        queryValues.push(`%${params.numero_nota}%`);
+      }
+      if (params.conta_gerencial) {
+        queryParts.push(`oop.conta_gerencial ILIKE $${index++}`);
+        queryValues.push(`%${params.conta_gerencial}%`);
+      }
+      if (params.fornecedor) {
+        queryParts.push(`oop.fornecedor ILIKE $${index++}`);
+        queryValues.push(`%${params.fornecedor}%`);
+      }
+      if (params.filial) {
+        queryParts.push(`oop.filial ILIKE $${index++}`);
+        queryValues.push(`%${params.filial}%`);
+      }
+      if (params.serienf) {
+        queryParts.push(`oop.serienf ILIKE $${index++}`);
+        queryValues.push(`%${params.serienf}%`);
+      }
+      if (params.metodo) {
+        queryParts.push(`oop.metodo ILIKE $${index++}`);
+        queryValues.push(`%${params.metodo}%`);
+      }
+      if (params.quantidade_itens) {
+        queryParts.push(`CAST(oop.quantidade_itens AS TEXT) ILIKE $${index++}`);
+        queryValues.push(`%${params.quantidade_itens}%`);
+      }
+      if (params.dtlanc) {
+        queryParts.push(`CAST(oop.dtlanc AS TEXT) ILIKE $${index++}`);
+        queryValues.push(`%${params.dtlanc}%`);
+      }
+
+      const query = `
+        SELECT 
+          oop.id, 
+          oop.filial, 
+          substring(oop.fornecedor, position('-' in fornecedor) + 1, position('CNPJ' in oop.fornecedor) - 7) as fornecedor, 
+          substring(oop.fornecedor, position('CNPJ' in fornecedor) + 5, 20) as cnpj, 
+          oop.conta_gerencial as contagerencial, 
+          upper(oop.metodo) as formapag, 
+          concat('NF:', oop.numero_nota, ' SERIE:', oop.serienf) as notafiscal, 
+          oop.quantidade_parcelas as parcelas, 
+          oop.quantidade_itens as itens, 
+          ite.valor, 
+          upper(assinatura1) assinatura1, 
+          dtassinatura1, 
+          upper(assinatura2) assinatura2, 
+          dtassinatura2, 
+          upper(assinatura3) assinatura3, 
+          dtassinatura3 
+        FROM 
+          intra.op_ordem_pagamento oop 
+        INNER JOIN  
+          (SELECT ordem_id id, sum(valor_produto) as valor FROM intra.op_itens GROUP BY ordem_id) ite 
+        ON 
+          ite.id = oop.id 
+        ${queryParts.length ? 'WHERE ' + queryParts.join(' AND ') : ''}
+        ORDER BY 
+          oop.id DESC
+      `;
+
+      const result = await client.query(query, queryValues);
+      return result.rows;
+    } catch (error) {
+      console.error('Erro ao buscar ordens de pagamento:', error);
+      throw new Error('Erro ao buscar ordens de pagamento');
+    } finally {
+      client.release();
+    }
+  }
 }
