@@ -334,4 +334,84 @@ export default class OrderService {
       client.release();
     }
   }
+
+  async registerSignature(orderId: number, signerName: string, token: string, signatureNumber: number): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      if (signatureNumber < 1 || signatureNumber > 3) {
+        throw new Error('Número de assinatura inválido.');
+      }
+
+      const signatureField = `assinatura${signatureNumber}`;
+      const dateField = `dt${signatureField}`;
+      const signerField = `s${signatureNumber}`;
+
+      const passwords = ['flareon', 'vaporeon', 'jolteon'];
+      const password = passwords[signatureNumber - 1];
+
+      const updateQuery = `
+        UPDATE intra.op_ordem_pagamento
+        SET ${signatureField} = crypt($1, gen_salt('bf')),
+            ${dateField} = NOW(),
+            ${signerField} = $2
+        WHERE id = $3
+        RETURNING id, ${signatureField} as token, ${dateField} as date, ${signerField} as signer
+      `;
+      const updateResult = await client.query(updateQuery, [password, signerName, orderId]);
+
+      if (updateResult.rows.length === 0) {
+        throw new Error(`Ordem de Pagamento com ID ${orderId} não encontrada.`);
+      }
+      const validationQuery = `
+        SELECT
+          id,
+          ramo,
+          fornecedor,
+          assinatura1,
+          CASE
+            WHEN assinatura1 IS NOT NULL THEN
+              CASE WHEN crypt('flareon', assinatura1) = assinatura1 THEN 'Assinado' ELSE 'Tentativa de Golpe' END
+            ELSE 'Nao Assinado'
+          END AS assinatura1_status,
+          dtassinatura1,
+          assinatura2,
+          CASE
+            WHEN assinatura2 IS NOT NULL THEN
+              CASE WHEN crypt('vaporeon', assinatura2) = assinatura2 THEN 'Assinado' ELSE 'Tentativa de Golpe' END
+            ELSE 'Nao Assinado'
+          END AS assinatura2_status,
+          dtassinatura2,
+          assinatura3,
+          CASE
+            WHEN assinatura3 IS NOT NULL THEN
+              CASE WHEN crypt('jolteon', assinatura3) = assinatura3 THEN 'Assinado' ELSE 'Tentativa de Golpe' END
+            ELSE 'Nao Assinado'
+          END AS assinatura3_status,
+          dtassinatura3
+        FROM intra.op_ordem_pagamento
+        WHERE id = $1
+      `;
+      const validationResult = await client.query(validationQuery, [orderId]);
+
+      if (validationResult.rows.length === 0) {
+        throw new Error(`Ordem de Pagamento com ID ${orderId} não encontrada.`);
+      }
+
+      return {
+        orderId: updateResult.rows[0].id,
+        token: updateResult.rows[0].token,
+        date: updateResult.rows[0].date,
+        signer: updateResult.rows[0].signer,
+        validation: validationResult.rows[0] // Inclui o resultado da validação
+      };
+    } catch (error) {
+      console.error('Erro ao registrar assinatura:', error);
+      throw new Error('Erro ao registrar assinatura');
+    } finally {
+      client.release();
+    }
+  }
+     
+
+
 }

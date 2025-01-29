@@ -171,4 +171,14 @@ export default class OrderController {
       });
     }
   }
+
+  async registerSignature(req: Request, res: Response) {
+    const { orderId, signerName, token, signatureNumber } = req.body;
+    try {
+      const signature = await this.service.registerSignature(orderId, signerName, token, signatureNumber);
+      res.status(200).json(signature);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  }
 }

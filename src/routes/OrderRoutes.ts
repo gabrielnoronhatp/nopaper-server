@@ -476,4 +476,14 @@ router.get('/ordem-detalhes/:ordemId', (req: any, res: any) => {
  */
 router.get('/buscar-ordem', (req, res) => orderController.searchOrders(req, res));
 
+/**
+ * @swagger
+ * /api/registrar-assinatura:
+ *   post:
+ *     tags:
+ *       - Orders
+ *     summary: Registra uma assinatura para uma ordem de pagamento
+ */
+router.post('/orders/signature', (req, res) => orderController.registerSignature(req, res));
+
 export default router;
