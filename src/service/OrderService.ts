@@ -11,10 +11,8 @@ export default class OrderService {
     this.pool = pool;
   }
 
-
- 
-
   async create(orderData: OrderData): Promise<any> {
+
     if (!orderData.produtosOP || orderData.produtosOP.length === 0) {
       throw new Error("produtosOP is not defined or empty.");
     }
