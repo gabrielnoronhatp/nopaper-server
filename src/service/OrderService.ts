@@ -409,7 +409,45 @@ export default class OrderService {
       client.release();
     }
   }
-     
 
-
+  async searchOrdersByPeriod(startDate: string, endDate: string): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      const query = `
+        SELECT 
+          oop.id, 
+          oop.filial, 
+          substring(oop.fornecedor, position('-' in fornecedor) + 1, position('CNPJ' in oop.fornecedor) - 7) as fornecedor, 
+          substring(oop.fornecedor, position('CNPJ' in fornecedor) + 5, 20) as cnpj, 
+          oop.conta_gerencial as contagerencial, 
+          upper(oop.metodo) as formapag, 
+          concat('NF:', oop.numero_nota, ' SERIE:', oop.serienf) as notafiscal, 
+          oop.quantidade_parcelas as parcelas, 
+          oop.quantidade_itens as itens, 
+          ite.valor, 
+          upper(assinatura1) assinatura1, 
+          dtassinatura1, 
+          upper(assinatura2) assinatura2, 
+          dtassinatura2, 
+          upper(assinatura3) assinatura3, 
+          dtassinatura3 
+        FROM 
+          intra.op_ordem_pagamento oop 
+        INNER JOIN  
+          (SELECT ordem_id id, sum(valor_produto) as valor FROM intra.op_itens GROUP BY ordem_id) ite 
+        ON 
+          ite.id = oop.id 
+        WHERE 
+          DATE(oop.dtlanc) BETWEEN $1 AND $2
+        ORDER BY oop.id DESC
+      `;
+      const result = await client.query(query, [startDate, endDate]);
+      return result.rows;
+    } catch (error) {
+      console.error('Erro ao buscar ordens por período:', error);
+      throw new Error('Erro ao buscar ordens por período');
+    } finally {
+      client.release();
+    }
+  }
 }

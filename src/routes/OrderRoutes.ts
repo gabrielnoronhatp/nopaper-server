@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import OrderController from '../controller/OrderController';
 import OrderService from '../service/OrderService';
 import Order from '../models/Order';
@@ -474,7 +474,13 @@ router.get('/ordem-detalhes/:ordemId', (req: any, res: any) => {
  *       500:
  *         description: Erro ao buscar ordens de pagamento
  */
-router.get('/buscar-ordem', (req, res) => orderController.searchOrders(req, res));
+router.get('/buscar-ordem', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await orderController.searchOrders(req, res);
+  } catch (error) {
+    next(error); // repassa o erro para o middleware de tratamento de erros
+  }
+});
 
 /**
  * @swagger
@@ -485,5 +491,21 @@ router.get('/buscar-ordem', (req, res) => orderController.searchOrders(req, res)
  *     summary: Registra uma assinatura para uma ordem de pagamento
  */
 router.post('/orders/signature', (req, res) => orderController.registerSignature(req, res));
+
+/**
+ * @swagger
+ * /api/ordens-por-periodo:
+ *   get:
+ *     tags:
+ *       - Orders
+ *     summary: Busca ordens de pagamento por período
+ */
+router.get('/ordens-por-periodo', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await orderController.searchOrdersByPeriod(req, res);
+  } catch (error) {
+    next(error); // repassa o erro para o middleware de tratamento de erros
+  }
+});
 
 export default router;

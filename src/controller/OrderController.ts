@@ -160,14 +160,37 @@ export default class OrderController {
   }
 
   async searchOrders(req: Request, res: Response) {
+    // Verifica se algum dos parâmetros de período está presente
+    if (req.query.startDate || req.query.endDate) {
+      // Se somente um for passado, retorna erro
+      if (!req.query.startDate || !req.query.endDate) {
+        return res.status(400).json({
+          error: "startDate e endDate são obrigatórios"
+        });
+      }
+
+      const { startDate, endDate } = req.query;
+      try {
+        const orders = await this.service.searchOrdersByPeriod(String(startDate), String(endDate));
+        return res.status(200).json(orders);
+      } catch (error: any) {
+        console.error('Erro ao buscar ordens por período:', error);
+        return res.status(500).json({
+          success: false,
+          message: error.message || 'Erro ao buscar ordens por período.'
+        });
+      }
+    }
+
+    // Realiza a busca padrão se não houver parâmetros de período
     try {
       const orders = await this.service.searchOrders(req.query);
-      res.status(200).json(orders);
+      return res.status(200).json(orders);
     } catch (error: any) {
       console.error('Erro ao buscar ordens de pagamento:', error);
-      res.status(500).json({
+      return res.status(500).json({
         success: false,
-        message: error.message || 'Erro ao buscar ordens de pagamento.',
+        message: error.message || 'Erro ao buscar ordens de pagamento.'
       });
     }
   }
@@ -179,6 +202,23 @@ export default class OrderController {
       res.status(200).json(signature);
     } catch (error: any) {
       res.status(500).json({ error: error.message });
+    }
+  }
+
+  async searchOrdersByPeriod(req: Request, res: Response) {
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) {
+      return res.status(400).json({ error: "startDate e endDate são obrigatórios" });
+    }
+    try {
+      const orders = await this.service.searchOrdersByPeriod(String(startDate), String(endDate));
+      res.status(200).json(orders);
+    } catch (error: any) {
+      console.error('Erro ao buscar ordens por período:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Erro ao buscar ordens por período.'
+      });
     }
   }
 }
