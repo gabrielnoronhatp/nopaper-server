@@ -13,8 +13,9 @@ export class StoreController {
 
   static async searchStores(req: Request, res: Response): Promise<void> {
     const searchQuery = req.query.q as string;
+    const ramo = req.query.ramo as string;
     try {
-      const stores = await StoreService.searchStores(searchQuery);
+      const stores = await StoreService.searchStores(searchQuery, ramo);
       res.json(stores);
     } catch (error: any) {
       res.status(500).send(error.message);

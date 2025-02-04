@@ -5,8 +5,11 @@ export class SupplierService {
   static async getSuppliers(searchQuery: string): Promise<Supplier[]> {
     try {
       const result = await pgPool.query(
-        'SELECT resumo AS fornecedor FROM wint.pcfornec WHERE resumo LIKE $1 LIMIT 10',
-        [`%${searchQuery}%`]
+        `SELECT resumo AS fornecedor 
+         FROM wint.pcfornec 
+         WHERE regexp_replace(resumo, '^[0-9]+-', '') ILIKE $1 
+         LIMIT 10`,
+         [`%${searchQuery}%`]
       );
       return result.rows;
     } catch (error) {
