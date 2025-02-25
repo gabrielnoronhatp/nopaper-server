@@ -358,9 +358,21 @@ export default class OrderService {
         throw new Error("Número de assinatura inválido.");
       }
 
+      
+      const signerField = `s${signatureNumber}`;
+      const permissionQuery = `
+        SELECT ${signerField}
+        FROM intra.logins
+        WHERE nome = $1 AND ${signerField} = true
+      `;
+      const permissionResult = await client.query(permissionQuery, [signerName]);
+
+      if (permissionResult.rows.length === 0) {
+        throw new Error("Usuário não tem permissão para assinar.");
+      }
+
       const signatureField = `assinatura${signatureNumber}`;
       const dateField = `dt${signatureField}`;
-      const signerField = `s${signatureNumber}`;
 
       const passwords = ["flareon", "vaporeon", "jolteon"];
       const password = passwords[signatureNumber - 1];
@@ -382,6 +394,7 @@ export default class OrderService {
       if (updateResult.rows.length === 0) {
         throw new Error(`Ordem de Pagamento com ID ${orderId} não encontrada.`);
       }
+
       const validationQuery = `
         SELECT
           id,
@@ -422,7 +435,7 @@ export default class OrderService {
         token: updateResult.rows[0].token,
         date: updateResult.rows[0].date,
         signer: updateResult.rows[0].signer,
-        validation: validationResult.rows[0], // Inclui o resultado da validação
+        validation: validationResult.rows[0], 
       };
     } catch (error) {
       console.error("Erro ao registrar assinatura:", error);
