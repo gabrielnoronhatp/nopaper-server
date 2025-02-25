@@ -221,4 +221,25 @@ export default class OrderController {
       });
     }
   }
+
+  async updateOrder(req: Request, res: Response) {
+    const orderId: number = parseInt(req.params.id, 10);
+    if (isNaN(orderId)) {
+      return res.status(400).json({ error: 'Invalid orderId' });
+    }
+
+    try {
+      const updatedOrder = await this.service.updateOrder(orderId, req.body);
+      res.status(200).json({
+        message: 'Ordem de pagamento atualizada com sucesso!',
+        order: updatedOrder
+      });
+    } catch (error: any) {
+      console.error('Erro ao atualizar ordem de pagamento:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Erro ao atualizar ordem de pagamento.'
+      });
+    }
+  }
 }

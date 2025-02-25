@@ -411,8 +411,14 @@ router.get('/formas-pagamento', (req, res) => orderController.getFormasPagamento
  *       500:
  *         description: Erro ao buscar detalhes da ordem
  */
-router.get('/ordem-detalhes/:ordemId', (req: any, res: any) => {
-  orderController.getOrderDetails(req, res);
+router.get('/ordem-detalhes/:ordemId', async (req, res) => {
+  const { ordemId } = req.params;
+  try {
+    const orderDetails = await orderService.getOrderDetails(Number(ordemId));
+    res.json(orderDetails);
+  } catch (error: any) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 /**
@@ -505,6 +511,115 @@ router.get('/ordens-por-periodo', async (req: Request, res: Response, next: Next
     await orderController.searchOrdersByPeriod(req, res);
   } catch (error) {
     next(error); // repassa o erro para o middleware de tratamento de erros
+  }
+});
+
+/**
+ * @swagger
+ * /api/atualizar-ordem/{id}:
+ *   put:
+ *     tags:
+ *       - Orders
+ *     summary: Atualiza uma ordem de pagamento existente
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID da ordem de pagamento
+ *         schema:
+ *           type: integer
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               dtlanc:
+ *                 type: string
+ *               ramoOP:
+ *                 type: string
+ *               notaOP:
+ *                 type: string
+ *               qtparcelasOP:
+ *                 type: number
+ *               contagerencialOP:
+ *                 type: string
+ *               fornecedorOP:
+ *                 type: string
+ *               lojaOP:
+ *                 type: string
+ *               serieOP:
+ *                 type: string
+ *               metodoOP:
+ *                 type: string
+ *               qtitensOP:
+ *                 type: number
+ *               valorimpostoOP:
+ *                 type: number
+ *               dtavistaOP:
+ *                 type: string
+ *               bancoOP:
+ *                 type: string
+ *               agenciaOP:
+ *                 type: string
+ *               contaOP:
+ *                 type: string
+ *               dtdepositoOP:
+ *                 type: string
+ *               parcelasOP:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     parcela:
+ *                       type: string
+ *               produtosOP:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     produto:
+ *                       type: string
+ *                     valor:
+ *                       type: number
+ *                     centroCusto:
+ *                       type: string
+ *               observacaoOP:
+ *                 type: string
+ *               tipopixOP:
+ *                 type: string
+ *               chavepixOP:
+ *                 type: string
+ *               datapixOP:
+ *                 type: string
+ *               opcaoLancOP:
+ *                 type: string
+ *               ccustoOP:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     centrocusto:
+ *                       type: string
+ *                     valor:
+ *                       type: number
+ *               userOP:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Ordem atualizada com sucesso
+ *       400:
+ *         description: ID da ordem inválido
+ *       500:
+ *         description: Erro ao atualizar ordem
+ */
+router.put('/atualizar-ordem/:id', async (req: Request, res: Response) => {
+  try {
+    await orderController.updateOrder(req, res);
+  } catch (error) {
+    console.error('Erro ao atualizar ordem de pagamento:', error);
+    res.status(500).json({ message: 'Erro ao atualizar ordem de pagamento.' });
   }
 });
 
