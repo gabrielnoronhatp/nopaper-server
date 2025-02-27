@@ -4,7 +4,7 @@ import { StoreService } from '../service/StoreService';
 export class StoreController {
   static async getAllStores(req: Request, res: Response): Promise<void> {
     try {
-      const stores = await StoreService.getAllStores();
+      const stores = await StoreService.getAllStores(req.query.q as string);
       res.json(stores);
     } catch (error: any) {
       res.status(500).send(error.message);
