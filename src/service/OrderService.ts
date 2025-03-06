@@ -346,6 +346,40 @@ export default class OrderService {
     }
   }
 
+
+
+  async checkSignaturePermission(
+    signerName: string,
+    signatureNumber: number
+  ): Promise<boolean> {
+    const client = await this.pool.connect();
+    try {
+      // Valida o número da assinatura
+      if (signatureNumber < 1 || signatureNumber > 3) {
+        throw new Error("Número de assinatura inválido. Deve ser 1, 2 ou 3.");
+      }
+  
+      // Define o campo de permissão correspondente (s1, s2 ou s3)
+      const signerField = `s${signatureNumber}`;
+  
+      // Query para verificar se o usuário tem permissão
+      const permissionQuery = `
+        SELECT ${signerField}
+        FROM intra.logins
+        WHERE nome = $1 AND ${signerField} = true
+      `;
+      const permissionResult = await client.query(permissionQuery, [signerName]);
+  
+      // Retorna true se o usuário tiver permissão, caso contrário, false
+      return permissionResult.rows.length > 0;
+    } catch (error) {
+      console.error("Erro ao verificar permissão de assinatura:", error);
+      throw new Error("Erro ao verificar permissão de assinatura");
+    } finally {
+      client.release();
+    }
+  }
+
   async registerSignature(
     orderId: number,
     signerName: string,

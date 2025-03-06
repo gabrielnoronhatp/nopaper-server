@@ -498,6 +498,34 @@ router.get('/buscar-ordem', async (req: Request, res: Response, next: NextFuncti
  */
 router.post('/orders/signature', (req, res) => orderController.registerSignature(req, res));
 
+/** 
+ * @swagger
+ * /api/user/permission:
+ *   post:
+ *     tags:
+ *       - Orders
+ *     summary: Verifica se o usuário tem permissão para assinar uma ordem de pagamento
+ *     parameters:
+ *       - in: body
+ *         name: signerName
+ *         required: true
+ *         description: Nome do usuário
+ *       - in: body
+ *         name: signatureNumber
+ *         required: true
+ *         description: Número da assinatura
+ *     responses:
+ *       200:
+ *         description: Usuário tem permissão para assinar  
+ *       400:
+ *         description: Usuário não tem permissão para assinar
+ *       500:
+ *         description: Erro ao verificar permissão do usuário
+ */
+router.post('/orders/permission', (req, res) => orderController.getUserPermission(req, res));
+
+
+
 /**
  * @swagger
  * /api/ordens-por-periodo:

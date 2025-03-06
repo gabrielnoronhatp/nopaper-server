@@ -242,4 +242,10 @@ export default class OrderController {
       });
     }
   }
+
+  async getUserPermission(req: Request, res: Response) {
+    const { signerName, signatureNumber } = req.body;
+    const permission = await this.service.checkSignaturePermission(signerName, signatureNumber);
+    res.status(200).json(permission);
+  }
 }
