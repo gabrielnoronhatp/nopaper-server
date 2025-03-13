@@ -11,7 +11,10 @@ export const pgPool = new Pool({
   host: process.env.PG_HOST,
   database: process.env.PG_DATABASE,
   password: process.env.PG_PASSWORD,
-  port: Number(process.env.PG_PORT),
+  port: 5432,
+  max: 10, 
+  connectionTimeoutMillis: 10000, 
+
 });
 
 // OracleDB

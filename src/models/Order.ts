@@ -14,6 +14,7 @@ export default class Order {
     
     try {
       await client.query('BEGIN');
+      
       const insertOrdem = `
         INSERT INTO intra.op_ordem_pagamento (
           ramo, numero_nota, quantidade_parcelas, conta_gerencial, 
@@ -42,7 +43,7 @@ export default class Order {
 
       const ordemId = ordemResult.rows[0].id;
 
-     
+      // Inserir em op_centros_custo
       for (const cc of orderData.ccustoOP) {
         await client.query(
           'INSERT INTO intra.op_centros_custo (ordem_id, centro_custo, valor) VALUES ($1, $2, $3)',
@@ -50,10 +51,31 @@ export default class Order {
         );
       }
 
+      // Inserir em op_itens
       for (const produto of orderData.produtosOP) {
         await client.query(
           'INSERT INTO intra.op_itens (ordem_id, nome_produto, valor_produto, centro_custo) VALUES ($1, $2, $3, $4)',
           [ordemId, produto.produto, produto.valor, produto.centroCusto]
+        );
+      }
+
+      // Inserir em op_parcelas
+      for (const parcela of orderData.parcelasOP) {
+        await client.query(
+          `
+          INSERT INTO intra.op_parcelas (
+            ordem_id, data_vencimento, banco, agencia, conta, tipopix, chavepix
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7);
+          `,
+          [
+            ordemId,
+            parcela.parcela,        // data_vencimento
+            parcela.banco,
+            parcela.agencia,
+            parcela.conta,
+            parcela.tipopix,
+            parcela.chavepix
+          ]
         );
       }
 

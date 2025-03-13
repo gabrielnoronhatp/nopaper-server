@@ -28,6 +28,26 @@ app.get('/api/profile', verifyJWT, (req, res) => {
 
 
 
+const { Pool } = require('pg');
+
+const pool = new Pool({
+    user: 'powerbi',
+    host: '10.2.10.49',
+    database: 'postgres',
+    password: 'Tapaj0s-D4ta',
+    port: 5432
+});
+
+pool.connect()
+    .then((client: any) => {
+        console.log("Conectado ao PostgreSQL!");
+        client.release();
+        pool.end();
+    })
+    .catch((err: any) => console.error("Erro de conexão:", err));
+
+
+
 const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
