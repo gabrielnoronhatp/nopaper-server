@@ -651,4 +651,35 @@ router.put('/atualizar-ordem/:id', async (req: Request, res: Response) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/cancelar-ordem/{id}:
+ *   put:
+ *     tags:
+ *       - Orders
+ *     summary: Cancela uma ordem de pagamento existente
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID da ordem de pagamento
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Ordem cancelada com sucesso
+ *       400:
+ *         description: ID da ordem inválido
+ *       500:
+ *         description: Erro ao cancelar ordem
+ */
+router.put('/cancelar-ordem/:id', async (req: Request, res: Response) => {
+  try {
+    await orderController.cancelOrder(req, res);
+  } catch (error) {
+    console.error('Erro ao cancelar ordem de pagamento:', error);
+    res.status(500).json({ message: 'Erro ao cancelar ordem de pagamento.' });
+  }
+});
+
 export default router;

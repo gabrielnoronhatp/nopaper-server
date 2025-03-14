@@ -248,4 +248,25 @@ export default class OrderController {
     const permission = await this.service.checkSignaturePermission(signerName, signatureNumber);
     res.status(200).json(permission);
   }
+
+  async cancelOrder(req: Request, res: Response) {
+    const orderId: number = parseInt(req.params.id, 10);
+    if (isNaN(orderId)) {
+      return res.status(400).json({ error: 'Invalid orderId' });
+    }
+
+    try {
+      const canceledOrder = await this.service.cancelOrder(orderId);
+      res.status(200).json({
+        message: 'Ordem de pagamento cancelada com sucesso!',
+        order: canceledOrder
+      });
+    } catch (error: any) {
+      console.error('Erro ao cancelar ordem de pagamento:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Erro ao cancelar ordem de pagamento.'
+      });
+    }
+  }
 }

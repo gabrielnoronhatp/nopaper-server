@@ -56,15 +56,14 @@ export default class OrderService {
           upper(assinatura2) assinatura2, 
           dtassinatura2, 
           upper(assinatura3) assinatura3, 
-          dtassinatura3 
+          dtassinatura3,
+          oop.canceled
         FROM 
           intra.op_ordem_pagamento oop 
         INNER JOIN  
           (SELECT ordem_id id, sum(valor_produto) as valor FROM intra.op_itens GROUP BY ordem_id) ite 
         ON 
           ite.id = oop.id 
-        WHERE 
-          (dtassinatura1 IS NULL OR dtassinatura2 IS NULL OR dtassinatura3 IS NULL) 
         ORDER BY 
           oop.id DESC
       `);
@@ -324,7 +323,8 @@ export default class OrderService {
           upper(assinatura2) assinatura2, 
           dtassinatura2, 
           upper(assinatura3) assinatura3, 
-          dtassinatura3 
+          dtassinatura3,
+          oop.canceled
         FROM 
           intra.op_ordem_pagamento oop 
         INNER JOIN  
@@ -345,8 +345,6 @@ export default class OrderService {
       client.release();
     }
   }
-
-
 
   async checkSignaturePermission(
     signerName: string,
@@ -712,6 +710,28 @@ export default class OrderService {
     } catch (error) {
       console.error("Erro ao buscar detalhes da ordem:", error);
       throw new Error("Erro ao buscar detalhes da ordem");
+    } finally {
+      client.release();
+    }
+  }
+
+  async cancelOrder(orderId: number): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      const updateQuery = `
+        UPDATE intra.op_ordem_pagamento
+        SET canceled = true
+        WHERE id = $1
+        RETURNING id, canceled;
+      `;
+      const result = await client.query(updateQuery, [orderId]);
+      if (result.rows.length === 0) {
+        throw new Error(`Ordem de Pagamento com ID ${orderId} não encontrada.`);
+      }
+      return result.rows[0];
+    } catch (error) {
+      console.error("Erro ao cancelar ordem de pagamento:", error);
+      throw new Error("Erro ao cancelar ordem de pagamento");
     } finally {
       client.release();
     }
