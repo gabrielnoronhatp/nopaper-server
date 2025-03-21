@@ -4,7 +4,7 @@ import OrderService from '../service/OrderService';
 import Order from '../models/Order';
 import { pgPool } from '../config/database';
 import s3Client from '../awsConfig';
-import { ListObjectsCommand, PutObjectCommand } from '@aws-sdk/client-s3';
+import { ListObjectsCommand, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import multer from 'multer';
 
 const router = Router();
@@ -681,5 +681,70 @@ router.put('/cancelar-ordem/:id', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro ao cancelar ordem de pagamento.' });
   }
 });
+
+/**
+ * @swagger
+ * /api/excluir-arquivo:
+ *   delete:
+ *     tags:
+ *       - Upload
+ *     summary: Exclui um arquivo específico do bucket S3
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               fileKey:
+ *                 type: string
+ *                 description: Caminho completo do arquivo no bucket S3
+ *     responses:
+ *       200:
+ *         description: Arquivo excluído com sucesso
+ *       400:
+ *         description: Chave do arquivo não fornecida
+ *       500:
+ *         description: Erro ao excluir arquivo
+ */
+router.delete('/excluir-arquivo', (req: Request, res: any) => {
+  try {
+    const { fileKey } = req.body;
+    
+    if (!fileKey) {
+      return res.status(400).json({ message: 'Chave do arquivo não fornecida.' });
+    }
+    
+    // Verifica se a chave do arquivo está no formato correto (opId/nome-do-arquivo)
+    if (!fileKey.includes('/')) {
+      return res.status(400).json({ 
+        message: 'Formato de chave inválido. Use o formato: opId/nome-do-arquivo' 
+      });
+    }
+    
+    const params = {
+      Bucket: process.env.S3_BUCKET_NAME,
+      Key: fileKey
+    };
+    
+    const command = new DeleteObjectCommand(params);
+    
+    s3Client.send(command)
+      .then(() => {
+        res.status(200).json({ 
+          message: 'Arquivo excluído com sucesso.',
+          deletedFile: fileKey
+        });
+      })
+      .catch((error) => {
+        console.error('Erro ao excluir arquivo:', error);
+        res.status(500).json({ message: 'Erro ao excluir arquivo.', error });
+      });
+  } catch (error) {
+    console.error('Erro ao excluir arquivo:', error);
+    res.status(500).json({ message: 'Erro ao excluir arquivo.', error });
+  }
+});
+
 
 export default router;
