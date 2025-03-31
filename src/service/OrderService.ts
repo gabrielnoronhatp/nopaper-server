@@ -578,7 +578,7 @@ export default class OrderService {
                 VALUES ($1, $2, $3, $4, $5, $6, $7)`,
           [
             orderId,
-            parcela.data_vencimento,
+            parcela.parcela,
             parcela.banco,
             parcela.agencia,
             parcela.conta,
