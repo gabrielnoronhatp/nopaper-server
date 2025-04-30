@@ -21,4 +21,15 @@ export class StoreController {
       res.status(500).send(error.message);
     }
   }
+
+  static async getAllStoresWithId(req: Request, res: Response): Promise<void> {
+    
+    
+    try {
+      const stores = await StoreService.getAllStoresWithId();
+      res.json(stores);
+    } catch (error: any) {
+      res.status(500).send(error.message);
+    } 
+  }
 } 

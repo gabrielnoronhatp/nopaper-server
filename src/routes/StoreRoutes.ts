@@ -52,4 +52,29 @@ router.get('/dadoslojas', StoreController.getAllStores);
  */
 router.get('/lojasgrupo', StoreController.searchStores);
 
+/**
+ * @swagger
+ * /api/todaslojasgrupo/:
+ *   get:
+ *     tags:
+ *       - Stores
+ *     summary: Retorna uma lista de todas as lojas
+ *     responses:
+ *       200:
+ *         description: Lista de lojas
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 type: object
+ *                 properties:
+ *                   idempresa:
+ *                     type: integer
+ *                   loja:
+ *                     type: string
+ */
+router.get('/todaslojasgrupo/', StoreController.getAllStoresWithId);
+
+
 export default router; 
