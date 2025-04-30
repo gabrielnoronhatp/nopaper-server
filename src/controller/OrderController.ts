@@ -269,4 +269,23 @@ export default class OrderController {
       });
     }
   }
+
+  async duplicateOrder(req: Request, res: Response) {
+    const orderId: number = parseInt(req.params.id, 10);
+    if (isNaN(orderId)) {
+      return res.status(400).json({ error: 'Invalid orderId' });  
+    }
+
+    try {
+      const duplicatedOrder = await this.service.duplicateOrder(orderId);
+      res.status(200).json(duplicatedOrder);
+    } catch (error: any) {
+      console.error('Erro ao duplicar ordem de pagamento:', error);
+      res.status(500).json({
+        success: false,
+          message: error.message || 'Erro ao duplicar ordem de pagamento.'
+      
+      });
+    }
+  }
 }

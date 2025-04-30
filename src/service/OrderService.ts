@@ -356,18 +356,20 @@ export default class OrderService {
       if (signatureNumber < 1 || signatureNumber > 3) {
         throw new Error("Número de assinatura inválido. Deve ser 1, 2 ou 3.");
       }
-  
+
       // Define o campo de permissão correspondente (s1, s2 ou s3)
       const signerField = `s${signatureNumber}`;
-  
+
       // Query para verificar se o usuário tem permissão
       const permissionQuery = `
         SELECT ${signerField}
         FROM intra.logins
         WHERE nome = $1 AND ${signerField} = true
       `;
-      const permissionResult = await client.query(permissionQuery, [signerName]);
-  
+      const permissionResult = await client.query(permissionQuery, [
+        signerName,
+      ]);
+
       // Retorna true se o usuário tiver permissão, caso contrário, false
       return permissionResult.rows.length > 0;
     } catch (error) {
@@ -390,14 +392,15 @@ export default class OrderService {
         throw new Error("Número de assinatura inválido.");
       }
 
-      
       const signerField = `s${signatureNumber}`;
       const permissionQuery = `
         SELECT ${signerField}
         FROM intra.logins
         WHERE nome = $1 AND ${signerField} = true
       `;
-      const permissionResult = await client.query(permissionQuery, [signerName]);
+      const permissionResult = await client.query(permissionQuery, [
+        signerName,
+      ]);
 
       if (permissionResult.rows.length === 0) {
         throw new Error("Usuário não tem permissão para assinar.");
@@ -467,7 +470,7 @@ export default class OrderService {
         token: updateResult.rows[0].token,
         date: updateResult.rows[0].date,
         signer: updateResult.rows[0].signer,
-        validation: validationResult.rows[0], 
+        validation: validationResult.rows[0],
       };
     } catch (error) {
       console.error("Erro ao registrar assinatura:", error);
@@ -666,7 +669,9 @@ export default class OrderService {
       const orderResult = await client.query(orderQuery, [orderId]);
       const parcelasResult = await client.query(parcelasQuery, [orderId]);
       const itensResult = await client.query(itensQuery, [orderId]);
-      const centrosCustoResult = await client.query(centrosCustoQuery, [orderId]);
+      const centrosCustoResult = await client.query(centrosCustoQuery, [
+        orderId,
+      ]);
 
       if (orderResult.rows.length === 0) {
         throw new Error(`Ordem de Pagamento com ID ${orderId} não encontrada.`);
@@ -689,7 +694,7 @@ export default class OrderService {
         observacaoOP: order.obs,
         opcaoLancOP: order.tipo_lanc,
         userOP: order.userid,
-        parcelasOP: parcelasResult.rows.map(parcela => ({
+        parcelasOP: parcelasResult.rows.map((parcela) => ({
           parcela: parcela.data_vencimento,
           banco: parcela.banco,
           agencia: parcela.agencia,
@@ -697,12 +702,12 @@ export default class OrderService {
           tipopix: parcela.tipopix,
           chavepix: parcela.chavepix,
         })),
-        produtosOP: itensResult.rows.map(item => ({
+        produtosOP: itensResult.rows.map((item) => ({
           produto: item.nome_produto,
           valor: item.valor_produto,
           centroCusto: item.centro_custo,
         })),
-        ccustoOP: centrosCustoResult.rows.map(ccusto => ({
+        ccustoOP: centrosCustoResult.rows.map((ccusto) => ({
           centrocusto: ccusto.centro_custo,
           valor: ccusto.valor,
         })),
@@ -732,6 +737,94 @@ export default class OrderService {
     } catch (error) {
       console.error("Erro ao cancelar ordem de pagamento:", error);
       throw new Error("Erro ao cancelar ordem de pagamento");
+    } finally {
+      client.release();
+    }
+  }
+
+  async duplicateOrder(orderId: number): Promise<any> {
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+
+      const orderDetails = await this.getOrderDetails(orderId);
+      
+      // Gerar um sufixo único baseado no timestamp atual para evitar duplicação
+      const timestamp = new Date().getTime();
+      const notaSufixo = `TEMP-${timestamp}`;
+
+      const insertOrderQuery = `
+        INSERT INTO intra.op_ordem_pagamento 
+        (dtlanc, ramo, numero_nota, quantidade_parcelas, conta_gerencial, 
+        fornecedor, filial, serienf, metodo, quantidade_itens, vlimposto, 
+        obs, tipo_lanc, userId)
+        VALUES
+        (CURRENT_DATE, $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+        RETURNING id;
+      `;
+
+      const orderValues = [
+        orderDetails.ramoOP,
+        notaSufixo, // Use um valor temporário único em vez de string vazia
+        orderDetails.qtparcelasOP,
+        orderDetails.contagerencialOP,
+        orderDetails.fornecedorOP,
+        orderDetails.lojaOP,
+        orderDetails.serieOP,
+        orderDetails.metodoOP,
+        orderDetails.qtitensOP,
+        orderDetails.valorimpostoOP,
+        orderDetails.observacaoOP
+          ? orderDetails.observacaoOP + " (Duplicado)"
+          : "(Duplicado - Necessário informar número da nota fiscal)",
+        orderDetails.opcaoLancOP,
+        orderDetails.userOP,
+      ];
+
+      const result = await client.query(insertOrderQuery, orderValues);
+      const newOrderId = result.rows[0].id;
+      
+      for (const parcela of orderDetails.parcelasOP) {
+        await client.query(
+          `INSERT INTO intra.op_parcelas (ordem_id, data_vencimento, banco, agencia, conta, tipopix, chavepix) 
+          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [
+            newOrderId,
+            parcela.parcela,
+            parcela.banco,
+            parcela.agencia,
+            parcela.conta,
+            parcela.tipopix,
+            parcela.chavepix,
+          ]
+        );
+      }
+
+      for (const produto of orderDetails.produtosOP) {
+        await client.query(
+          `INSERT INTO intra.op_itens (ordem_id, nome_produto, valor_produto, centro_custo) 
+          VALUES ($1, $2, $3, $4)`,
+          [newOrderId, produto.produto, produto.valor, produto.centroCusto]
+        );
+      }
+
+      for (const ccusto of orderDetails.ccustoOP) {
+        await client.query(
+          `INSERT INTO intra.op_centros_custo (ordem_id, centro_custo, valor, perc) 
+          VALUES ($1, $2, $3, 0)`,
+          [newOrderId, ccusto.centrocusto, ccusto.valor]
+        );
+      }
+
+      await client.query("COMMIT");
+      return { 
+        id: newOrderId, 
+        message: "Ordem duplicada com sucesso. Lembre-se de atualizar o número da nota fiscal." 
+      };
+    } catch (error) {
+      await client.query("ROLLBACK");
+      console.error("Erro ao duplicar ordem de pagamento:", error);
+      throw new Error("Erro ao duplicar ordem de pagamento");
     } finally {
       client.release();
     }

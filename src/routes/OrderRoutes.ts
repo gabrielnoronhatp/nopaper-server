@@ -746,5 +746,33 @@ router.delete('/excluir-arquivo', (req: Request, res: any) => {
   }
 });
 
+/**
+ * @swagger
+ * /api/duplicar-ordem/{id}:
+ *   post:
+ *     tags:
+ *       - Orders
+ *     summary: Duplica uma ordem de pagamento existente
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         description: ID da ordem de pagamento  
+ *     responses:
+ *       200: 
+ *         description: Ordem duplicada com sucesso
+ *       400:
+ *         description: ID da ordem inválido
+ *       500:
+ *         description: Erro ao duplicar ordem
+ */
+router.post('/duplicar-ordem/:id', async (req: Request, res: Response) => {
+  try {
+    await orderController.duplicateOrder(req, res);
+  } catch (error) {
+    console.error('Erro ao duplicar ordem de pagamento:', error);
+    res.status(500).json({ message: 'Erro ao duplicar ordem de pagamento.' });
+  }
+});
 
 export default router;
